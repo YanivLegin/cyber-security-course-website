@@ -43,6 +43,13 @@ document.addEventListener("DOMContentLoaded", () => {
     
     // Theme
     const themeToggle = document.getElementById("theme-toggle");
+
+    // Helper to get lesson title without prefix
+    const getLessonTitle = (title) => {
+        const idx = title.indexOf("-");
+        if (idx === -1) return title;
+        return title.substring(idx + 1).trim();
+    };
     
     // Dashboard Stats
     const statLessonsRead = document.getElementById("stat-lessons-read");
@@ -190,7 +197,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 item.classList.add("active");
             }
             
-            item.innerHTML = `<span>שיעור ${lesson.id}: ${lesson.title.split("-")[1].trim()}</span>`;
+            item.innerHTML = `<span>שיעור ${lesson.id}: ${getLessonTitle(lesson.title)}</span>`;
             item.addEventListener("click", (e) => {
                 e.preventDefault();
                 loadLesson(lesson.id);
@@ -404,7 +411,7 @@ document.addEventListener("DOMContentLoaded", () => {
         courseData.lessons.forEach(l => {
             const opt = document.createElement("option");
             opt.value = l.id;
-            opt.textContent = `מפגש ${l.id}: ${l.title.split("-")[1].trim()}`;
+            opt.textContent = `מפגש ${l.id}: ${getLessonTitle(l.title)}`;
             flashcardsFilter.appendChild(opt);
         });
         
@@ -867,7 +874,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 matches.push({
                     type: "lesson",
                     id: l.id,
-                    title: `שיעור ${l.id}: ${l.title.split("-")[1].trim()}`,
+                    title: `שיעור ${l.id}: ${getLessonTitle(l.title)}`,
                     snippet: "מעבר לשיעור זה מהתפריט"
                 });
             } else {
@@ -884,7 +891,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     matches.push({
                         type: "lesson",
                         id: l.id,
-                        title: `שיעור ${l.id}: ${l.title.split("-")[1].trim()}`,
+                        title: `שיעור ${l.id}: ${getLessonTitle(l.title)}`,
                         snippet: snippet
                     });
                 }
