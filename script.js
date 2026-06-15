@@ -272,7 +272,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // -----------------------------------------
     const renderDashboard = () => {
         // Stats
-        statLessonsRead.textContent = `${appState.readLessons.length} / 14`;
+        statLessonsRead.textContent = `${appState.readLessons.length} / 13`;
         statFlashcardsMastered.textContent = appState.knownCards.length;
         
         if (appState.examHighScore !== null) {
@@ -335,9 +335,9 @@ document.addEventListener("DOMContentLoaded", () => {
             pdfFallbackMsg.classList.add("active");
             pdfEmbedContainer.innerHTML = "";
             
-            // Customize fallback message for lesson 14
-            if (lessonId === 14) {
-                pdfFallbackMsg.querySelector("p").innerHTML = `מפגש 14 הוא מפגש סיכום והכנה למבחן. <br>מומלץ לעיין במצגות של <strong>מפגש 12</strong> ו-<strong>מפגש 13</strong> העוסקות בתוכניות המשכיות עסקית (BCP) ובניית תקציבים.`;
+            // Customize fallback message for lesson 13
+            if (lessonId === 13) {
+                pdfFallbackMsg.querySelector("p").innerHTML = `מפגש 13 הוא מפגש סיכום והכנה למבחן. <br>מומלץ לעיין במצגת של <strong>מפגש 13</strong> העוסקת בתוכניות המשכיות עסקית (BCP) ובניית תקציבים.`;
             } else {
                 pdfFallbackMsg.querySelector("p").textContent = "לא נמצאה מצגת מוגדרת למפגש זה.";
             }
