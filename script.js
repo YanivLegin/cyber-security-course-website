@@ -15,6 +15,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // Exam simulator state
         examMode: "study", // study or test
         examQuestions: [],
+        selectedExamId: null,
         currentExamIndex: 0,
         examAnswers: {}, // index -> chosen option letter
         examChecked: {}, // index -> boolean (has checked answer in study mode)
@@ -63,12 +64,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const lessonTitleDisplay = document.getElementById("lesson-title-display");
     const lessonReadCheckbox = document.getElementById("lesson-read-checkbox");
     const lessonSummaryHtml = document.getElementById("lesson-summary-html");
-    const lessonQuestionsContainer = document.getElementById("lesson-questions-container");
     const pdfEmbedContainer = document.getElementById("pdf-embed-container");
     const pdfFallbackMsg = document.getElementById("pdf-fallback-msg");
     const tabBtns = document.querySelectorAll(".tab-btn");
     const tabPanes = document.querySelectorAll(".tab-pane");
-    const tabBtnQuestions = document.getElementById("tab-btn-questions");
     
     // Flashcard View elements
     const flashcardsFilter = document.getElementById("flashcards-filter");
@@ -113,6 +112,63 @@ document.addEventListener("DOMContentLoaded", () => {
     const resultsTopicsProgress = document.getElementById("results-topics-progress");
     const resultsQuestionsReview = document.getElementById("results-questions-review");
     const btnRestartExam = document.getElementById("btn-restart-exam");
+    const examsSelectGrid = document.getElementById("exams-select-grid");
+
+    // Sound synthesis functions using Web Audio API
+    const playCorrectSound = () => {
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc1 = ctx.createOscillator();
+            const osc2 = ctx.createOscillator();
+            const gain = ctx.createGain();
+            
+            osc1.connect(gain);
+            osc2.connect(gain);
+            gain.connect(ctx.destination);
+            
+            osc1.type = "sine";
+            osc1.frequency.setValueAtTime(523.25, ctx.currentTime); // C5
+            osc1.frequency.setValueAtTime(659.25, ctx.currentTime + 0.1); // E5
+            
+            osc2.type = "sine";
+            osc2.frequency.setValueAtTime(783.99, ctx.currentTime + 0.1); // G5
+            
+            gain.gain.setValueAtTime(0, ctx.currentTime);
+            gain.gain.linearRampToValueAtTime(0.12, ctx.currentTime + 0.05);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+            
+            osc1.start(ctx.currentTime);
+            osc1.stop(ctx.currentTime + 0.35);
+            osc2.start(ctx.currentTime + 0.1);
+            osc2.stop(ctx.currentTime + 0.35);
+        } catch (e) {
+            console.error("Audio failed:", e);
+        }
+    };
+
+    const playIncorrectSound = () => {
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            
+            osc.type = "triangle";
+            osc.frequency.setValueAtTime(150, ctx.currentTime);
+            osc.frequency.linearRampToValueAtTime(100, ctx.currentTime + 0.25);
+            
+            gain.gain.setValueAtTime(0, ctx.currentTime);
+            gain.gain.linearRampToValueAtTime(0.15, ctx.currentTime + 0.05);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+            
+            osc.start(ctx.currentTime);
+            osc.stop(ctx.currentTime + 0.3);
+        } catch (e) {
+            console.error("Audio failed:", e);
+        }
+    };
 
     // -----------------------------------------
     // 3. THEME TOGGLER
@@ -170,6 +226,11 @@ document.addEventListener("DOMContentLoaded", () => {
             renderDashboard();
         } else if (viewName === "flashcards") {
             setupFlashcardsDeck();
+        } else if (viewName === "exam") {
+            initExamsSelector();
+            appState.selectedExamId = null;
+            btnStartExam.disabled = true;
+            btnStartExam.textContent = "אנא בחרו שאלון בחינה";
         }
     };
 
@@ -262,50 +323,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // Render summary
         lessonSummaryHtml.innerHTML = lesson.summaryHtml;
         
-        // Mapped questions list inside the lesson summary
-        tabBtnQuestions.textContent = `שאלות מבחן קשורות (${lesson.questions.length})`;
-        
-        if (lesson.questions.length > 0) {
-            let html = `<h2 class="questions-section-title">שאלות תרגול למפגש זה (מתוך המבחן לדוגמה):</h2>`;
-            lesson.questions.forEach(q => {
-                html += `
-                <div class="lesson-question-wrapper" data-q-id="${q.id}">
-                    <h3 class="question-text">${q.id}. ${q.question}</h3>
-                    <div class="options-container">
-                `;
-                
-                Object.keys(q.options).forEach(letter => {
-                    const text = q.options[letter];
-                    if (text) {
-                        html += `
-                        <div class="option-card lesson-opt" data-letter="${letter}">
-                            <div class="option-letter">${letter}</div>
-                            <div class="option-text">${text}</div>
-                        </div>
-                        `;
-                    }
-                });
-                
-                html += `
-                    </div>
-                    <div class="feedback-card hidden q-feedback">
-                        <div class="feedback-status"></div>
-                        <p class="feedback-explanation">${q.explanation}</p>
-                    </div>
-                </div>
-                `;
-            });
-            lessonQuestionsContainer.innerHTML = html;
-            bindLessonQuestionsHandlers(lesson.questions);
-        } else {
-            lessonQuestionsContainer.innerHTML = `
-            <div class="empty-state">
-                <div class="empty-icon">💡</div>
-                <h3>אין שאלות ישירות מהמבחן לדוגמה עבור שיעור זה</h3>
-                <p>השאלות במבחן ממוקדות בעיקר בנושאי מפתח כמו Zero Trust, ניהול סיכונים, שרשרת האספקה, המשכיות עסקית ופתרונות EDR/XDR.</p>
-            </div>
-            `;
-        }
+        // Mapped questions list inside the lesson summary is deprecated
         
         // Set up Presentation
         if (lesson.presentation) {
@@ -367,41 +385,7 @@ document.addEventListener("DOMContentLoaded", () => {
         renderDashboard();
     });
     
-    // Lesson knowledge check (mapped questions) logic
-    const bindLessonQuestionsHandlers = (questions) => {
-        document.querySelectorAll(".lesson-question-wrapper").forEach(wrapper => {
-            const qId = parseInt(wrapper.getAttribute("data-q-id"));
-            const q = questions.find(question => question.id === qId);
-            const options = wrapper.querySelectorAll(".lesson-opt");
-            const feedbackCard = wrapper.querySelector(".q-feedback");
-            const feedbackStatus = wrapper.querySelector(".feedback-status");
-            
-            options.forEach(opt => {
-                opt.addEventListener("click", () => {
-                    // Lock other options
-                    options.forEach(o => o.style.pointerEvents = "none");
-                    
-                    const letter = opt.getAttribute("data-letter");
-                    const isCorrect = letter === q.answer;
-                    
-                    opt.classList.add(isCorrect ? "correct" : "incorrect");
-                    
-                    // Show correct option anyway
-                    if (!isCorrect) {
-                        wrapper.querySelector(`.lesson-opt[data-letter="${q.answer}"]`).classList.add("correct");
-                    }
-                    
-                    // Show feedback
-                    feedbackStatus.className = "feedback-status " + (isCorrect ? "correct" : "incorrect");
-                    feedbackStatus.innerHTML = isCorrect 
-                        ? `<svg class="icon status-icon"><use href="#icon-check"/></svg><span>תשובה נכונה!</span>`
-                        : `<svg class="icon status-icon"><use href="#icon-times"/></svg><span>תשובה שגויה. התשובה הנכונה היא ${q.answer}</span>`;
-                    
-                    feedbackCard.classList.remove("hidden");
-                });
-            });
-        });
-    };
+    // Lesson knowledge check logic has been removed
 
     // -----------------------------------------
     // 8. FLASHCARDS LOGIC
@@ -564,6 +548,44 @@ document.addEventListener("DOMContentLoaded", () => {
     // -----------------------------------------
     // 9. EXAM SIMULATOR LOGIC
     // -----------------------------------------
+    // Render available exams list dynamically
+    const initExamsSelector = () => {
+        if (!examsSelectGrid) return;
+        
+        examsSelectGrid.innerHTML = "";
+        
+        courseData.exams.forEach(exam => {
+            const card = document.createElement("div");
+            card.className = "exam-select-card";
+            card.setAttribute("data-exam-id", exam.id);
+            
+            if (appState.selectedExamId === exam.id) {
+                card.classList.add("selected");
+            }
+            
+            card.innerHTML = `
+                <h4>${exam.title}</h4>
+                <p>${exam.description}</p>
+                <div class="exam-meta">
+                    <svg class="icon" style="width: 14px; height: 14px;"><use href="#icon-book"/></svg>
+                    <span>${exam.questions.length} שאלות אמריקאיות</span>
+                </div>
+            `;
+            
+            card.addEventListener("click", () => {
+                document.querySelectorAll(".exam-select-card").forEach(c => c.classList.remove("selected"));
+                card.classList.add("selected");
+                appState.selectedExamId = exam.id;
+                
+                // Enable the start button and change its text
+                btnStartExam.disabled = false;
+                btnStartExam.textContent = `התחל את ${exam.title}`;
+            });
+            
+            examsSelectGrid.appendChild(card);
+        });
+    };
+
     // Toggle active mode styles
     const modeOptions = document.querySelectorAll(".mode-option");
     modeOptions.forEach(opt => {
@@ -577,7 +599,10 @@ document.addEventListener("DOMContentLoaded", () => {
     
     // Start Exam button
     btnStartExam.addEventListener("click", () => {
-        appState.examQuestions = [...courseData.allQuestions]; // copy the questions
+        const exam = courseData.exams.find(e => e.id === appState.selectedExamId);
+        if (!exam) return;
+        
+        appState.examQuestions = [...exam.questions]; // copy the questions
         appState.currentExamIndex = 0;
         appState.examAnswers = {};
         appState.examChecked = {};
@@ -716,6 +741,14 @@ document.addEventListener("DOMContentLoaded", () => {
         
         appState.examChecked[index] = true;
         
+        // Play correct/incorrect sound
+        const q = appState.examQuestions[index];
+        if (chosen === q.answer) {
+            playCorrectSound();
+        } else {
+            playIncorrectSound();
+        }
+        
         // Re-render to lock options and show feedback
         renderExamQuestion();
     });
@@ -747,18 +780,14 @@ document.addEventListener("DOMContentLoaded", () => {
         let correctCount = 0;
         const total = appState.examQuestions.length;
         
-        // Calculate scores by topic
-        // Topics mapping based on questions:
-        const topics = {
-            "Zero Trust": { correct: 0, total: 0, questionIds: [13, 20, 22] },
-            "ניהול סיכונים": { correct: 0, total: 0, questionIds: [1, 2, 9, 12, 18] },
-            "המשכיות עסקית (BCP)": { correct: 0, total: 0, questionIds: [3, 4, 5, 6, 8, 17] },
-            "אבטחת נקודות קצה ו-EDR/XDR": { correct: 0, total: 0, questionIds: [7, 16] },
-            "מודיעין סייבר ו-SOC": { correct: 0, total: 0, questionIds: [10, 15, 19] },
-            "שרשרת האספקה (SCRM)": { correct: 0, total: 0, questionIds: [14, 21] }
-        };
-        
+        // Calculate scores by topic dynamically
+        const topics = {};
         appState.examQuestions.forEach((q, idx) => {
+            const topicName = q.category || "כללי";
+            if (!topics[topicName]) {
+                topics[topicName] = { correct: 0, total: 0 };
+            }
+            
             const chosen = appState.examAnswers[idx] || null;
             const isCorrect = chosen === q.answer;
             
@@ -766,14 +795,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 correctCount++;
             }
             
-            // Map to topic
-            Object.keys(topics).forEach(topicName => {
-                const topic = topics[topicName];
-                if (topic.questionIds.includes(q.id)) {
-                    topic.total++;
-                    if (isCorrect) topic.correct++;
-                }
-            });
+            topics[topicName].total++;
+            if (isCorrect) {
+                topics[topicName].correct++;
+            }
         });
         
         // Final Score
@@ -799,7 +824,7 @@ document.addEventListener("DOMContentLoaded", () => {
         resultsStatusBadge.textContent = passed ? "עבר" : "נכשל";
         
         resultsFeedbackMessage.innerHTML = passed 
-            ? `כל הכבוד! עברת את המבחן הסימולטיבי בהצלחה עם ציון של <strong>${scorePercent}%</strong>. אתה מוכן היטב לבחינה.`
+            ? `כל הכבוד! עברת את הבחינה בהצלחה עם ציון של <strong>${scorePercent}%</strong>. אתה מוכן היטב למבחן!`
             : `הציון שקיבלת הוא <strong>${scorePercent}%</strong> (ציון המעבר הוא 60%). אנו ממליצים לעבור שוב על סיכומי השיעורים וכרטיסיות השינון של הנושאים החלשים.`;
             
         // Render topics progress bars
@@ -899,25 +924,36 @@ document.addEventListener("DOMContentLoaded", () => {
         });
         
         // 2. Search in exam questions
-        courseData.allQuestions.forEach(q => {
-            if (q.question.toLowerCase().includes(val) || q.explanation.toLowerCase().includes(val)) {
-                const idx = q.question.toLowerCase().indexOf(val);
-                let snippet = "";
-                if (idx !== -1) {
-                    const start = Math.max(0, idx - 20);
-                    const end = Math.min(q.question.length, idx + 50);
-                    snippet = q.question.substring(start, end).trim();
-                } else {
-                    snippet = q.explanation.substring(0, 70).trim();
-                }
+        courseData.exams.forEach(exam => {
+            exam.questions.forEach(q => {
+                const qText = q.question.toLowerCase();
+                const qExp = q.explanation.toLowerCase();
+                let match = qText.includes(val) || qExp.includes(val);
                 
-                matches.push({
-                    type: "exam",
-                    id: q.id,
-                    title: `שאלה ${q.id} מהמבחן לדוגמה`,
-                    snippet: snippet
+                Object.values(q.options).forEach(opt => {
+                    if (opt.toLowerCase().includes(val)) match = true;
                 });
-            }
+                
+                if (match) {
+                    const idx = qText.indexOf(val);
+                    let snippet = "";
+                    if (idx !== -1) {
+                        const start = Math.max(0, idx - 20);
+                        const end = Math.min(q.question.length, idx + 50);
+                        snippet = q.question.substring(start, end).trim();
+                    } else {
+                        snippet = q.explanation.substring(0, 70).trim();
+                    }
+                    
+                    matches.push({
+                        type: "exam",
+                        id: q.id,
+                        examId: exam.id,
+                        title: `שאלה ${q.id} מתוך ${exam.title}`,
+                        snippet: snippet
+                    });
+                }
+            });
         });
         
         // Render Search Results
@@ -947,9 +983,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (m.type === "lesson") {
                     loadLesson(m.id);
                 } else if (m.type === "exam") {
+                    appState.selectedExamId = m.examId;
                     switchView("exam");
-                    // Jump to intro or directly to the question if they prefer,
-                    // but switching to exam simulator is the most stable.
+                    initExamsSelector();
+                    btnStartExam.disabled = false;
+                    btnStartExam.textContent = `התחל את ${courseData.exams.find(e => e.id === m.examId).title}`;
                 }
             });
             searchResults.appendChild(item);

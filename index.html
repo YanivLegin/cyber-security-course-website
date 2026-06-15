@@ -230,7 +230,6 @@
                     <!-- Lesson Tabs -->
                     <div class="lesson-tab-nav">
                         <button class="tab-btn active" data-tab="summary">סיכום השיעור והשוואת חומרים</button>
-                        <button class="tab-btn" data-tab="exam-questions" id="tab-btn-questions">שאלות מבחן קשורות (0)</button>
                         <button class="tab-btn" data-tab="presentation">מצגת השיעור</button>
                     </div>
 
@@ -240,13 +239,6 @@
                         <div id="lesson-tab-summary" class="tab-pane active">
                             <div class="summary-container" id="lesson-summary-html">
                                 <!-- Summary is rendered dynamically -->
-                            </div>
-                        </div>
-
-                        <!-- Exam Questions Tab -->
-                        <div id="lesson-tab-exam-questions" class="tab-pane">
-                            <div class="questions-lesson-list" id="lesson-questions-container">
-                                <!-- Mapped questions are rendered dynamically -->
                             </div>
                         </div>
 
@@ -344,22 +336,25 @@
                 <!-- 4. Exam Simulator View -->
                 <section id="view-exam" class="view-section">
                     <div class="section-title-wrapper">
-                        <h1>סימולטור מבחן לדוגמה</h1>
-                        <p>בחן את עצמך על כלל שאלות המבחן לדוגמה. המבחן כולל 22 שאלות המותאמות לנושאי הלימוד של הקורס.</p>
+                        <h1>סימולטור בחינה</h1>
+                        <p>תרגול והיערכות למבחן באמצעות מגוון שאלונים - שאלון הבחינה הרשמי וסימולציות מקוריות מקיפות.</p>
                     </div>
 
                     <!-- 4.1 Exam Intro Screen -->
                     <div id="exam-intro" class="exam-panel active">
                         <div class="exam-intro-card">
                             <h2>הנחיות לסימולציה</h2>
-                            <ul>
-                                <li>המבחן מכיל <strong>22 שאלות אמריקאיות</strong> (רב-ברירה).</li>
-                                <li>שאלות אלו הן השאלות הרשמיות מתוך קובץ המבחן לדוגמה.</li>
-                                <li>בסוף המבחן יוצג ציון סופי, אינדיקציה למעבר/כישלון, ופירוט מקיף של תשובותיך לצד התשובות הנכונות והסברים.</li>
-                            </ul>
+                            <p class="exam-intro-lead">בחרו את שאלון הבחינה ומצב התרגול המתאים לכם כדי להתחיל:</p>
+                            
+                            <div class="exam-selection-section">
+                                <h3>1. בחרו שאלון בחינה:</h3>
+                                <div class="exams-select-grid" id="exams-select-grid">
+                                    <!-- Dynamic Exam Cards will be rendered here -->
+                                </div>
+                            </div>
                             
                             <div class="exam-modes">
-                                <h3>בחרו מצב תרגול:</h3>
+                                <h3>2. בחרו מצב תרגול:</h3>
                                 <div class="modes-grid">
                                     <label class="mode-option active">
                                         <input type="radio" name="exam-mode" value="study" checked>
@@ -374,7 +369,7 @@
                                 </div>
                             </div>
 
-                            <button class="primary-btn start-exam-btn" id="btn-start-exam">התחל מבחן</button>
+                            <button class="primary-btn start-exam-btn" id="btn-start-exam" disabled>אנא בחרו שאלון בחינה</button>
                         </div>
                     </div>
 

@@ -1341,6 +1341,8 @@ body {
     line-height: 1.6;
     margin-bottom: 30px;
     text-align: right;
+    direction: rtl;
+    unicode-bidi: embed;
 }
 
 .options-container {
@@ -1359,6 +1361,7 @@ body {
     align-items: center;
     transition: all 0.2s;
     text-align: right;
+    direction: rtl;
 }
 
 .option-card:hover {
@@ -1420,6 +1423,8 @@ body {
     line-height: 1.5;
     flex: 1;
     text-align: right;
+    direction: rtl;
+    unicode-bidi: embed;
 }
 
 .option-card.selected .option-text,
@@ -1469,6 +1474,8 @@ body {
     font-size: 0.85rem;
     color: var(--text-secondary);
     line-height: 1.5;
+    text-align: right;
+    direction: rtl;
 }
 
 /* Navigation buttons */
@@ -1813,3 +1820,169 @@ body {
         grid-template-columns: 1fr;
     }
 }
+
+/* Light theme overrides for flashcards, summaries, and options */
+body.light-theme .card-front {
+    background: linear-gradient(135deg, rgba(235, 240, 250, 0.95) 0%, rgba(215, 225, 245, 0.95) 100%);
+    border-color: rgba(0, 242, 254, 0.4);
+}
+
+body.light-theme .card-back {
+    background: linear-gradient(135deg, rgba(245, 235, 250, 0.95) 0%, rgba(230, 215, 245, 0.95) 100%);
+    border-color: rgba(155, 81, 224, 0.4);
+}
+
+body.light-theme .card-content-text {
+    color: var(--text-primary);
+}
+
+body.light-theme .card-back .card-content-text {
+    color: var(--text-secondary);
+}
+
+body.light-theme .card-lesson {
+    background-color: rgba(0, 0, 0, 0.03);
+    color: var(--text-secondary);
+}
+
+body.light-theme .sidebar-header h2 {
+    background: linear-gradient(135deg, var(--text-primary) 30%, var(--accent-cyan) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+body.light-theme .lesson-section-title {
+    color: var(--text-primary);
+}
+
+body.light-theme .lesson-bullet-list li strong {
+    color: var(--text-primary);
+}
+
+body.light-theme .lesson-badge {
+    color: var(--bg-main);
+    background-color: var(--accent-cyan);
+}
+
+body.light-theme .lesson-nav-item.active {
+    color: var(--text-primary);
+    font-weight: 700;
+}
+
+body.light-theme .action-text h3 {
+    color: var(--text-primary);
+}
+
+body.light-theme .option-card {
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+body.light-theme .option-card:hover {
+    background-color: rgba(0, 0, 0, 0.04);
+}
+
+body.light-theme .option-card.selected {
+    background-color: rgba(0, 242, 254, 0.08);
+}
+
+body.light-theme .option-card.correct {
+    background-color: rgba(0, 255, 135, 0.08);
+}
+
+body.light-theme .option-card.incorrect {
+    background-color: rgba(255, 74, 90, 0.08);
+}
+
+body.light-theme .option-card.selected .option-text,
+body.light-theme .option-card.correct .option-text {
+    color: var(--text-primary);
+}
+
+/* Exam Selector Card styling */
+.exam-intro-lead {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    margin-bottom: 20px;
+    text-align: right;
+}
+
+.exam-selection-section {
+    margin: 25px 0;
+    text-align: right;
+}
+
+.exam-selection-section h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: var(--text-primary);
+}
+
+.exams-select-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+    margin-top: 12px;
+}
+
+.exam-select-card {
+    background-color: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    text-align: right;
+}
+
+.exam-select-card:hover {
+    background-color: rgba(255, 255, 255, 0.04);
+    border-color: var(--accent-cyan);
+    transform: translateY(-2px);
+}
+
+.exam-select-card.selected {
+    background-color: rgba(0, 242, 254, 0.05);
+    border-color: var(--accent-cyan);
+    box-shadow: 0 0 15px var(--accent-cyan-glow);
+}
+
+.exam-select-card h4 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.exam-select-card p {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    line-height: 1.45;
+    flex: 1;
+}
+
+.exam-select-card .exam-meta {
+    font-size: 0.75rem;
+    color: var(--accent-cyan);
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Light Theme tweaks for exam selector card */
+body.light-theme .exam-select-card {
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+body.light-theme .exam-select-card:hover {
+    background-color: rgba(0, 0, 0, 0.04);
+}
+
+body.light-theme .exam-select-card.selected {
+    background-color: rgba(0, 242, 254, 0.08);
+}
+
+
