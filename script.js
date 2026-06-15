@@ -224,6 +224,8 @@ document.addEventListener("DOMContentLoaded", () => {
         // Trigger specific view setups
         if (viewName === "dashboard") {
             renderDashboard();
+        } else if (viewName === "lessons") {
+            renderLessonsGrid();
         } else if (viewName === "flashcards") {
             setupFlashcardsDeck();
         } else if (viewName === "exam") {
@@ -264,6 +266,41 @@ document.addEventListener("DOMContentLoaded", () => {
                 loadLesson(lesson.id);
             });
             lessonsNav.appendChild(item);
+        });
+    };
+
+    // -----------------------------------------
+    // 5.5. LESSONS GRID RENDER (For Mobile & Desktop List View)
+    // -----------------------------------------
+    const renderLessonsGrid = () => {
+        const gridContainer = document.getElementById("lessons-grid-container");
+        if (!gridContainer) return;
+        gridContainer.innerHTML = "";
+        
+        courseData.lessons.forEach(lesson => {
+            const isRead = appState.readLessons.includes(lesson.id);
+            const card = document.createElement("div");
+            card.className = `lesson-grid-card ${isRead ? "read" : ""}`;
+            
+            // Extract a clean text description from summaryHtml by removing HTML tags
+            const tempDiv = document.createElement("div");
+            tempDiv.innerHTML = lesson.summaryHtml;
+            const plainText = tempDiv.textContent || tempDiv.innerText || "";
+            const cleanDesc = plainText.trim().substring(0, 120) + "...";
+            
+            card.innerHTML = `
+                <div class="card-header">
+                    <span class="lesson-badge">שיעור ${lesson.id}</span>
+                    ${isRead ? '<span class="read-status-badge">✓ נקרא</span>' : ''}
+                </div>
+                <h3>${getLessonTitle(lesson.title)}</h3>
+                <p class="card-description">${cleanDesc}</p>
+                <button class="view-btn">קרא סיכום ומצגת ←</button>
+            `;
+            card.addEventListener("click", () => {
+                loadLesson(lesson.id);
+            });
+            gridContainer.appendChild(card);
         });
     };
 
@@ -382,6 +419,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         saveState();
         renderSidebarLessons();
+        renderLessonsGrid();
         renderDashboard();
     });
     

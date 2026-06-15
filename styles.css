@@ -1985,4 +1985,109 @@ body.light-theme .exam-select-card.selected {
     background-color: rgba(0, 242, 254, 0.08);
 }
 
+/* Sidebar Lessons Navigation Button (Only on Mobile) */
+#menu-lessons-btn {
+    display: none;
+}
+
+@media (max-width: 900px) {
+    #menu-lessons-btn {
+        display: flex;
+    }
+}
+
+/* Lessons Grid View (New for Mobile/Desktop) */
+.lessons-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    margin-top: 24px;
+}
+
+.lesson-grid-card {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.lesson-grid-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--primary-light);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+}
+
+.lesson-grid-card.read {
+    border-color: rgba(46, 213, 115, 0.3);
+}
+
+.lesson-grid-card.read:hover {
+    border-color: rgba(46, 213, 115, 0.6);
+}
+
+.lesson-grid-card .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.lesson-grid-card h3 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    line-height: 1.4;
+    color: var(--text-main);
+    margin: 0;
+}
+
+.lesson-grid-card .card-description {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin: 0;
+    flex-grow: 1;
+}
+
+.lesson-grid-card .view-btn {
+    align-self: flex-start;
+    background: transparent;
+    border: none;
+    color: var(--primary-light);
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 0;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.lesson-grid-card:hover .view-btn {
+    color: var(--text-main);
+}
+
+.lesson-grid-card .read-status-badge {
+    font-size: 0.75rem;
+    color: #2ed573;
+    background-color: rgba(46, 213, 115, 0.1);
+    padding: 4px 8px;
+    border-radius: 20px;
+    font-weight: 600;
+}
+
+/* Light theme tweaks for lessons grid view */
+body.light-theme .lesson-grid-card {
+    background-color: #ffffff;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.03);
+}
+
+body.light-theme .lesson-grid-card:hover {
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+}
+
+
 
