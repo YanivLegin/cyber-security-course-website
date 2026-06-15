@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ניהול הגנת סייבר בארגון | פורטל למידה</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700&family=Heebo:wght@300;400;500;700;800&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="dark-theme">
+    <!-- SVG Icon Sprite -->
+    <svg style="display: none;">
+        <symbol id="icon-dashboard" viewBox="0 0 24 24">
+            <rect x="3" y="3" width="7" height="9" rx="1" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <rect x="14" y="3" width="7" height="5" rx="1" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <rect x="3" y="16" width="7" height="5" rx="1" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <rect x="14" y="12" width="7" height="9" rx="1" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </symbol>
+        <symbol id="icon-book" viewBox="0 0 24 24">
+            <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.168.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </symbol>
+        <symbol id="icon-cards" viewBox="0 0 24 24">
+            <rect x="3" y="4" width="12" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <path d="M7 2h12a2 2 0 0 1 2 2v14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <path d="M7 8h4M7 12h4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </symbol>
+        <symbol id="icon-exam" viewBox="0 0 24 24">
+            <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2m-6 9 2 2 4-4m-6-4h6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </symbol>
+        <symbol id="icon-theme" viewBox="0 0 24 24">
+            <path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364-.707.707M6.343 17.657l-.707.707m0-12.728.707.707m11.314 11.314-.707.707M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </symbol>
+        <symbol id="icon-chevron" viewBox="0 0 24 24">
+            <path d="m9 18 6-6-6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </symbol>
+        <symbol id="icon-search" viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="8" fill="none" stroke="currentColor" stroke-width="2"/>
+            <path d="m21 21-4.35-4.35" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </symbol>
+        <symbol id="icon-info" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
+            <path d="M12 16v-4m0-4h.01" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </symbol>
+        <symbol id="icon-check" viewBox="0 0 24 24">
+            <path d="M20 6 9 17l-5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </symbol>
+        <symbol id="icon-times" viewBox="0 0 24 24">
+            <path d="M18 6 6 18M6 6l12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </symbol>
+    </svg>
+
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-glow"></div>
+                <h2>ניהול הגנת סייבר</h2>
+                <p>פורטל הכנה למבחן</p>
+            </div>
+            
+            <nav class="sidebar-menu">
+                <a href="#dashboard" class="menu-item active" data-view="dashboard">
+                    <svg class="icon"><use href="#icon-dashboard"/></svg>
+                    <span>לוח בקרה</span>
+                </a>
+                
+                <div class="menu-divider">שיעורים</div>
+                <div class="lessons-list" id="lessons-nav">
+                    <!-- Lessons items will be rendered dynamically here -->
+                </div>
+                
+                <div class="menu-divider">כלים</div>
+                <a href="#flashcards" class="menu-item" data-view="flashcards">
+                    <svg class="icon"><use href="#icon-cards"/></svg>
+                    <span>כרטיסיות שינון</span>
+                </a>
+                <a href="#exam" class="menu-item" data-view="exam">
+                    <svg class="icon"><use href="#icon-exam"/></svg>
+                    <span>סימולטור מבחן</span>
+                </a>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <button id="theme-toggle" class="theme-btn">
+                    <svg class="icon"><use href="#icon-theme"/></svg>
+                    <span>שינוי עיצוב</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Top Header -->
+            <header class="content-header">
+                <div class="header-search">
+                    <svg class="search-icon"><use href="#icon-search"/></svg>
+                    <input type="text" id="global-search" placeholder="חפש נושא, מושג או שאלה...">
+                    <div id="search-results" class="search-results-dropdown hidden"></div>
+                </div>
+                
+                <div class="header-actions">
+                    <a href="מבחן לדוגמא.pdf" target="_blank" class="download-btn header-btn">
+                        <svg class="icon"><use href="#icon-book"/></svg>
+                        <span>הורד מבחן לדוגמה (PDF)</span>
+                    </a>
+                </div>
+            </header>
+
+            <!-- Views Container -->
+            <div class="views-container">
+                
+                <!-- 1. Dashboard View -->
+                <section id="view-dashboard" class="view-section active">
+                    <div class="welcome-banner">
+                        <div class="banner-content">
+                            <h1>ברוכים הבאים לפורטל הלמידה!</h1>
+                            <p>כאן תוכלו ללמוד ולתרגל את כלל החומר לקורס <strong>ניהול הגנת סייבר בארגון</strong>. החומר באתר מותאם באופן מלא למצגות, לתמלולים של ההרצאות, ולמבחן לדוגמה של הקורס.</p>
+                        </div>
+                        <div class="banner-glow"></div>
+                    </div>
+
+                    <!-- Statistics Cards -->
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon-wrapper blue">
+                                <svg class="icon"><use href="#icon-book"/></svg>
+                            </div>
+                            <div class="stat-details">
+                                <h3 id="stat-lessons-read">0 / 14</h3>
+                                <p>שיעורים שנקראו</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon-wrapper purple">
+                                <svg class="icon"><use href="#icon-cards"/></svg>
+                            </div>
+                            <div class="stat-details">
+                                <h3 id="stat-flashcards-mastered">0</h3>
+                                <p>כרטיסיות ששוננו בהצלחה</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon-wrapper green">
+                                <svg class="icon"><use href="#icon-exam"/></svg>
+                            </div>
+                            <div class="stat-details">
+                                <h3 id="stat-exam-high-score">אין נתונים</h3>
+                                <p>ציון שיא בסימולטור</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Focus Topics -->
+                    <div class="dashboard-grid">
+                        <div class="dashboard-panel">
+                            <h2>נושאי הליבה למבחן</h2>
+                            <p class="panel-subtitle">ריכוז הנושאים שמופיעים במבחן לדוגמה ובשאלות השחזור</p>
+                            
+                            <div class="topic-tags-container">
+                                <div class="topic-tag" data-lesson="4">
+                                    <div class="tag-title">Zero Trust (אפס אמון)</div>
+                                    <div class="tag-meta">עקרונות, קטגוריות, השוואה ל-VPN</div>
+                                </div>
+                                <div class="topic-tag" data-lesson="6">
+                                    <div class="tag-title">ניהול סיכונים (NIST CSF & FAIR)</div>
+                                    <div class="tag-meta">שלבי CSF, מודל FAIR כמותי, ניטור סיכונים</div>
+                                </div>
+                                <div class="topic-tag" data-lesson="14">
+                                    <div class="tag-title">המשכיות עסקית (BCP & DRP)</div>
+                                    <div class="tag-meta">BIA, RTO/RPO, שחזור מידע, מקרה הלל יפה</div>
+                                </div>
+                                <div class="topic-tag" data-lesson="10">
+                                    <div class="tag-title">פתרונות EDR & XDR</div>
+                                    <div class="tag-meta">הבדלים מרכזיים, קורלציה, הגנת נקודות קצה</div>
+                                </div>
+                                <div class="topic-tag" data-lesson="7">
+                                    <div class="tag-title">מודיעין סייבר ו-MITRE ATT&CK</div>
+                                    <div class="tag-meta">Mimikatz, Credential Dumping, תנועה רוחבית</div>
+                                </div>
+                                <div class="topic-tag" data-lesson="8">
+                                    <div class="tag-title">אבטחת שרשרת האספקה (SCRM)</div>
+                                    <div class="tag-meta">מיפוי ספקים, ניהול סיכונים חוזיים</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="dashboard-panel">
+                            <h2>התחלת תרגול מהיר</h2>
+                            <p class="panel-subtitle">בחרו את הדרך המועדפת עליכם ללמוד עכשיו</p>
+                            
+                            <div class="quick-actions">
+                                <button class="action-card" id="btn-quick-flashcards">
+                                    <div class="action-icon">🃏</div>
+                                    <div class="action-text">
+                                        <h3>כרטיסיות שינון מהירות</h3>
+                                        <p>תרגול מושגי יסוד ונושאי מפתח בממשק כרטיסיות אינטראקטיבי</p>
+                                    </div>
+                                </button>
+                                
+                                <button class="action-card" id="btn-quick-exam">
+                                    <div class="action-icon">📝</div>
+                                    <div class="action-text">
+                                        <h3>סימולטור מבחן מלא</h3>
+                                        <p>מבחן הכולל את כל 22 השאלות לדוגמה עם ניתוח תוצאות מפורט</p>
+                                    </div>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 2. Lesson View -->
+                <section id="view-lesson" class="view-section">
+                    <div class="lesson-header-card">
+                        <div class="lesson-badge" id="lesson-number-badge">שיעור 1</div>
+                        <h1 id="lesson-title-display">נושא השיעור</h1>
+                        
+                        <div class="lesson-progress-check">
+                            <label class="custom-checkbox">
+                                <input type="checkbox" id="lesson-read-checkbox">
+                                <span class="checkmark"></span>
+                                <span class="checkbox-label">סימנתי שיעור זה כנקרא</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Lesson Tabs -->
+                    <div class="lesson-tab-nav">
+                        <button class="tab-btn active" data-tab="summary">סיכום השיעור והשוואת חומרים</button>
+                        <button class="tab-btn" data-tab="exam-questions" id="tab-btn-questions">שאלות מבחן קשורות (0)</button>
+                        <button class="tab-btn" data-tab="presentation">מצגת השיעור</button>
+                    </div>
+
+                    <!-- Tab Contents -->
+                    <div class="lesson-tab-content">
+                        <!-- Summary Tab -->
+                        <div id="lesson-tab-summary" class="tab-pane active">
+                            <div class="summary-container" id="lesson-summary-html">
+                                <!-- Summary is rendered dynamically -->
+                            </div>
+                        </div>
+
+                        <!-- Exam Questions Tab -->
+                        <div id="lesson-tab-exam-questions" class="tab-pane">
+                            <div class="questions-lesson-list" id="lesson-questions-container">
+                                <!-- Mapped questions are rendered dynamically -->
+                            </div>
+                        </div>
+
+                        <!-- Presentation Tab -->
+                        <div id="lesson-tab-presentation" class="tab-pane">
+                            <div class="presentation-wrapper">
+                                <div class="presentation-iframe-container" id="pdf-embed-container">
+                                    <!-- PDF iframe is rendered here -->
+                                </div>
+                                <div class="presentation-fallback" id="pdf-fallback-msg">
+                                    <p>לא נמצאה מצגת מוגדרת למפגש זה, או שהשימוש במצגת מתבסס על מצגות של מפגשים קודמים.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 3. Flashcards View -->
+                <section id="view-flashcards" class="view-section">
+                    <div class="section-title-wrapper">
+                        <h1>כרטיסיות שינון (Flashcards)</h1>
+                        <p>שננו מושגי מפתח ונושאים מרכזיים המותאמים לנושאי המבחן.</p>
+                    </div>
+
+                    <!-- Flashcard Controls -->
+                    <div class="flashcards-controls">
+                        <div class="control-group">
+                            <label for="flashcards-filter">סנן לפי שיעור:</label>
+                            <select id="flashcards-filter" class="custom-select">
+                                <option value="all">כל השיעורים</option>
+                                <!-- Lesson options will be added dynamically -->
+                            </select>
+                        </div>
+
+                        <div class="flashcards-progress">
+                            <span id="flashcard-progress-text">כרטיסייה 1 מתוך 0</span>
+                            <div class="progress-bar-bg">
+                                <div class="progress-bar-fill" id="flashcard-progress-fill" style="width: 0%;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card Area -->
+                    <div class="flashcard-area">
+                        <div class="flashcard-container" id="flashcard-box">
+                            <div class="flashcard">
+                                <div class="card-face card-front">
+                                    <div class="card-number" id="card-front-number">#1</div>
+                                    <div class="card-lesson" id="card-front-lesson">מפגש 1</div>
+                                    <div class="card-content-text" id="card-front-text">מונח או שאלה</div>
+                                    <div class="card-instruction">לחץ על הכרטיסייה כדי להפוך</div>
+                                </div>
+                                <div class="card-face card-back">
+                                    <div class="card-number" id="card-back-number">#1</div>
+                                    <div class="card-lesson" id="card-back-lesson">מפגש 1</div>
+                                    <div class="card-content-text" id="card-back-text">הסבר או תשובה מפורטת</div>
+                                    <div class="card-instruction">לחץ כדי לחזור לצד הקדמי</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card Buttons -->
+                    <div class="flashcard-buttons">
+                        <button class="deck-btn prev-btn" id="btn-prev-card">
+                            <svg class="icon rotate180"><use href="#icon-chevron"/></svg>
+                            <span>הקודם</span>
+                        </button>
+                        
+                        <div class="mastery-actions">
+                            <button class="mastery-btn know-btn" id="btn-know-card">
+                                <svg class="icon"><use href="#icon-check"/></svg>
+                                <span>אני יודע!</span>
+                            </button>
+                            <button class="mastery-btn review-btn" id="btn-review-card">
+                                <svg class="icon"><use href="#icon-times"/></svg>
+                                <span>צריך לחזור על זה</span>
+                            </button>
+                        </div>
+
+                        <button class="deck-btn next-btn" id="btn-next-card">
+                            <span>הבא</span>
+                            <svg class="icon"><use href="#icon-chevron"/></svg>
+                        </button>
+                    </div>
+
+                    <!-- Empty State -->
+                    <div class="empty-state hidden" id="flashcards-empty-state">
+                        <div class="empty-icon">📭</div>
+                        <h3>אין כרטיסיות התואמות לסינון זה</h3>
+                        <p>נסו לבחור שיעור אחר או להחזיר לסינון "כל השיעורים".</p>
+                    </div>
+                </section>
+
+                <!-- 4. Exam Simulator View -->
+                <section id="view-exam" class="view-section">
+                    <div class="section-title-wrapper">
+                        <h1>סימולטור מבחן לדוגמה</h1>
+                        <p>בחן את עצמך על כלל שאלות המבחן לדוגמה. המבחן כולל 22 שאלות המותאמות לנושאי הלימוד של הקורס.</p>
+                    </div>
+
+                    <!-- 4.1 Exam Intro Screen -->
+                    <div id="exam-intro" class="exam-panel active">
+                        <div class="exam-intro-card">
+                            <h2>הנחיות לסימולציה</h2>
+                            <ul>
+                                <li>המבחן מכיל <strong>22 שאלות אמריקאיות</strong> (רב-ברירה).</li>
+                                <li>שאלות אלו הן השאלות הרשמיות מתוך קובץ המבחן לדוגמה.</li>
+                                <li>בסוף המבחן יוצג ציון סופי, אינדיקציה למעבר/כישלון, ופירוט מקיף של תשובותיך לצד התשובות הנכונות והסברים.</li>
+                            </ul>
+                            
+                            <div class="exam-modes">
+                                <h3>בחרו מצב תרגול:</h3>
+                                <div class="modes-grid">
+                                    <label class="mode-option active">
+                                        <input type="radio" name="exam-mode" value="study" checked>
+                                        <span class="mode-title">מצב למידה (תרגול)</span>
+                                        <span class="mode-desc">בדיקת תשובה מיידית לאחר כל שאלה והצגת ההסבר. מתאים ללימוד אקטיבי.</span>
+                                    </label>
+                                    <label class="mode-option">
+                                        <input type="radio" name="exam-mode" value="test">
+                                        <span class="mode-title">מצב מבחן (סימולציה)</span>
+                                        <span class="mode-desc">מענה על כל השאלות ברצף ללא משוב מיידי. הציון וההסברים יוצגו רק בסיום.</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <button class="primary-btn start-exam-btn" id="btn-start-exam">התחל מבחן</button>
+                        </div>
+                    </div>
+
+                    <!-- 4.2 Exam Active Screen -->
+                    <div id="exam-active" class="exam-panel hidden">
+                        <div class="exam-progress-header">
+                            <span id="exam-question-counter">שאלה 1 מתוך 22</span>
+                            <div class="progress-bar-bg">
+                                <div class="progress-bar-fill" id="exam-progress-fill" style="width: 0%;"></div>
+                            </div>
+                        </div>
+
+                        <div class="exam-question-card">
+                            <h2 class="question-text" id="exam-question-text">טקסט השאלה יוצג כאן</h2>
+                            
+                            <div class="options-container" id="exam-options-container">
+                                <!-- Radio options will be rendered here -->
+                            </div>
+                            
+                            <!-- Instant Feedback (only in Study Mode) -->
+                            <div class="feedback-card hidden" id="exam-feedback-card">
+                                <div class="feedback-status" id="exam-feedback-status">
+                                    <svg class="icon status-icon"><use href="#icon-check"/></svg>
+                                    <span id="exam-feedback-status-text">תשובה נכונה!</span>
+                                </div>
+                                <p class="feedback-explanation" id="exam-feedback-explanation">הסבר של השאלה יופיע פה...</p>
+                            </div>
+                        </div>
+
+                        <!-- Exam Navigation -->
+                        <div class="exam-navigation">
+                            <button class="secondary-btn" id="btn-exam-prev" disabled>הקודם</button>
+                            
+                            <button class="primary-btn check-answer-btn hidden" id="btn-exam-check">בדוק תשובה</button>
+                            
+                            <button class="primary-btn" id="btn-exam-next">השאלה הבאה</button>
+                            <button class="primary-btn success-btn hidden" id="btn-exam-submit">הגש מבחן</button>
+                        </div>
+                    </div>
+
+                    <!-- 4.3 Exam Results Screen -->
+                    <div id="exam-results" class="exam-panel hidden">
+                        <div class="results-summary-card">
+                            <div class="score-radial">
+                                <span class="score-num" id="results-score-percent">0%</span>
+                                <span class="score-label" id="results-score-fraction">0 מתוך 22</span>
+                            </div>
+                            <div class="status-badge" id="results-status-badge">נכשל</div>
+                            
+                            <h2>תוצאות המבחן הסימולטיבי</h2>
+                            <p class="results-feedback-text" id="results-feedback-message">ציון המעבר הוא 60%. המשיכו לתרגל כדי להשתפר!</p>
+                            
+                            <button class="primary-btn restart-exam-btn" id="btn-restart-exam">בצע מבחן חוזר</button>
+                        </div>
+
+                        <!-- Topics analysis -->
+                        <div class="dashboard-panel results-analysis">
+                            <h2>ניתוח לפי נושאי לימוד</h2>
+                            <div class="topics-progress-container" id="results-topics-progress">
+                                <!-- Progress bars by category will be added here -->
+                            </div>
+                        </div>
+
+                        <!-- Questions review list -->
+                        <div class="results-review-section">
+                            <h2>סקירת שאלות ותשובות</h2>
+                            <div class="results-review-list" id="results-questions-review">
+                                <!-- List of questions with correct/user answers -->
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="courseData.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

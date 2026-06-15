@@ -1,0 +1,965 @@
+document.addEventListener("DOMContentLoaded", () => {
+    // -----------------------------------------
+    // 1. STATE & STORAGE MANAGEMENT
+    // -----------------------------------------
+    let appState = {
+        currentView: "dashboard",
+        activeLessonId: 1,
+        readLessons: JSON.parse(localStorage.getItem("readLessons")) || [],
+        
+        // Flashcards state
+        flashcardDeck: [],
+        currentCardIndex: 0,
+        knownCards: JSON.parse(localStorage.getItem("knownCards")) || [], // Stores front text as key
+        
+        // Exam simulator state
+        examMode: "study", // study or test
+        examQuestions: [],
+        currentExamIndex: 0,
+        examAnswers: {}, // index -> chosen option letter
+        examChecked: {}, // index -> boolean (has checked answer in study mode)
+        examHighScore: localStorage.getItem("examHighScore") || null
+    };
+
+    // Save states to localStorage
+    const saveState = () => {
+        localStorage.setItem("readLessons", JSON.stringify(appState.readLessons));
+        localStorage.setItem("knownCards", JSON.stringify(appState.knownCards));
+        if (appState.examHighScore !== null) {
+            localStorage.setItem("examHighScore", appState.examHighScore);
+        }
+    };
+
+    // -----------------------------------------
+    // 2. ELEMENT SELECTORS
+    // -----------------------------------------
+    const menuItems = document.querySelectorAll(".menu-item");
+    const viewSections = document.querySelectorAll(".view-section");
+    const lessonsNav = document.getElementById("lessons-nav");
+    
+    // Header & Search
+    const globalSearch = document.getElementById("global-search");
+    const searchResults = document.getElementById("search-results");
+    
+    // Theme
+    const themeToggle = document.getElementById("theme-toggle");
+    
+    // Dashboard Stats
+    const statLessonsRead = document.getElementById("stat-lessons-read");
+    const statFlashcardsMastered = document.getElementById("stat-flashcards-mastered");
+    const statExamHighScore = document.getElementById("stat-exam-high-score");
+    const btnQuickFlashcards = document.getElementById("btn-quick-flashcards");
+    const btnQuickExam = document.getElementById("btn-quick-exam");
+    
+    // Lesson View elements
+    const lessonNumberBadge = document.getElementById("lesson-number-badge");
+    const lessonTitleDisplay = document.getElementById("lesson-title-display");
+    const lessonReadCheckbox = document.getElementById("lesson-read-checkbox");
+    const lessonSummaryHtml = document.getElementById("lesson-summary-html");
+    const lessonQuestionsContainer = document.getElementById("lesson-questions-container");
+    const pdfEmbedContainer = document.getElementById("pdf-embed-container");
+    const pdfFallbackMsg = document.getElementById("pdf-fallback-msg");
+    const tabBtns = document.querySelectorAll(".tab-btn");
+    const tabPanes = document.querySelectorAll(".tab-pane");
+    const tabBtnQuestions = document.getElementById("tab-btn-questions");
+    
+    // Flashcard View elements
+    const flashcardsFilter = document.getElementById("flashcards-filter");
+    const flashcardProgressText = document.getElementById("flashcard-progress-text");
+    const flashcardProgressFill = document.getElementById("flashcard-progress-fill");
+    const flashcardBox = document.getElementById("flashcard-box");
+    const cardFrontText = document.getElementById("card-front-text");
+    const cardBackText = document.getElementById("card-back-text");
+    const cardFrontNumber = document.getElementById("card-front-number");
+    const cardBackNumber = document.getElementById("card-back-number");
+    const cardFrontLesson = document.getElementById("card-front-lesson");
+    const cardBackLesson = document.getElementById("card-back-lesson");
+    const btnPrevCard = document.getElementById("btn-prev-card");
+    const btnNextCard = document.getElementById("btn-next-card");
+    const btnKnowCard = document.getElementById("btn-know-card");
+    const btnReviewCard = document.getElementById("btn-review-card");
+    const flashcardsEmptyState = document.getElementById("flashcards-empty-state");
+    
+    // Exam Simulator elements
+    const examIntro = document.getElementById("exam-intro");
+    const examActive = document.getElementById("exam-active");
+    const examResults = document.getElementById("exam-results");
+    const btnStartExam = document.getElementById("btn-start-exam");
+    const examQuestionCounter = document.getElementById("exam-question-counter");
+    const examProgressFill = document.getElementById("exam-progress-fill");
+    const examQuestionText = document.getElementById("exam-question-text");
+    const examOptionsContainer = document.getElementById("exam-options-container");
+    const examFeedbackCard = document.getElementById("exam-feedback-card");
+    const examFeedbackStatus = document.getElementById("exam-feedback-status");
+    const examFeedbackStatusText = document.getElementById("exam-feedback-status-text");
+    const examFeedbackExplanation = document.getElementById("exam-feedback-explanation");
+    const btnExamPrev = document.getElementById("btn-exam-prev");
+    const btnExamCheck = document.getElementById("btn-exam-check");
+    const btnExamNext = document.getElementById("btn-exam-next");
+    const btnExamSubmit = document.getElementById("btn-exam-submit");
+    
+    // Exam Results elements
+    const resultsScorePercent = document.getElementById("results-score-percent");
+    const resultsScoreFraction = document.getElementById("results-score-fraction");
+    const resultsStatusBadge = document.getElementById("results-status-badge");
+    const resultsFeedbackMessage = document.getElementById("results-feedback-message");
+    const resultsTopicsProgress = document.getElementById("results-topics-progress");
+    const resultsQuestionsReview = document.getElementById("results-questions-review");
+    const btnRestartExam = document.getElementById("btn-restart-exam");
+
+    // -----------------------------------------
+    // 3. THEME TOGGLER
+    // -----------------------------------------
+    const activeTheme = localStorage.getItem("theme") || "dark";
+    if (activeTheme === "light") {
+        document.body.classList.remove("dark-theme");
+        document.body.classList.add("light-theme");
+    }
+    
+    themeToggle.addEventListener("click", () => {
+        if (document.body.classList.contains("dark-theme")) {
+            document.body.classList.remove("dark-theme");
+            document.body.classList.add("light-theme");
+            localStorage.setItem("theme", "light");
+        } else {
+            document.body.classList.remove("light-theme");
+            document.body.classList.add("dark-theme");
+            localStorage.setItem("theme", "dark");
+        }
+    });
+
+    // -----------------------------------------
+    // 4. VIEW ROUTER
+    // -----------------------------------------
+    const switchView = (viewName) => {
+        appState.currentView = viewName;
+        
+        // Hide all views, show active
+        viewSections.forEach(sec => {
+            sec.classList.remove("active");
+            if (sec.id === `view-${viewName}`) {
+                sec.classList.add("active");
+            }
+        });
+        
+        // Update menu items active class
+        menuItems.forEach(item => {
+            item.classList.remove("active");
+            if (item.getAttribute("data-view") === viewName) {
+                item.classList.add("active");
+            }
+        });
+        
+        // Reset submenus active class if not in lesson view
+        if (viewName !== "lesson") {
+            document.querySelectorAll(".lesson-nav-item").forEach(el => el.classList.remove("active"));
+        }
+        
+        // Reset page scroll
+        window.scrollTo(0, 0);
+        
+        // Trigger specific view setups
+        if (viewName === "dashboard") {
+            renderDashboard();
+        } else if (viewName === "flashcards") {
+            setupFlashcardsDeck();
+        }
+    };
+
+    // Bind menu clicks
+    menuItems.forEach(item => {
+        item.addEventListener("click", (e) => {
+            e.preventDefault();
+            const view = item.getAttribute("data-view");
+            if (view) switchView(view);
+        });
+    });
+
+    // -----------------------------------------
+    // 5. SIDEBAR LESSONS RENDER
+    // -----------------------------------------
+    const renderSidebarLessons = () => {
+        lessonsNav.innerHTML = "";
+        courseData.lessons.forEach(lesson => {
+            const item = document.createElement("a");
+            item.className = "lesson-nav-item";
+            if (appState.readLessons.includes(lesson.id)) {
+                item.classList.add("read");
+            }
+            if (appState.activeLessonId === lesson.id && appState.currentView === "lesson") {
+                item.classList.add("active");
+            }
+            
+            item.innerHTML = `<span>שיעור ${lesson.id}: ${lesson.title.split("-")[1].trim()}</span>`;
+            item.addEventListener("click", (e) => {
+                e.preventDefault();
+                loadLesson(lesson.id);
+            });
+            lessonsNav.appendChild(item);
+        });
+    };
+
+    // -----------------------------------------
+    // 6. DASHBOARD LOGIC
+    // -----------------------------------------
+    const renderDashboard = () => {
+        // Stats
+        statLessonsRead.textContent = `${appState.readLessons.length} / 14`;
+        statFlashcardsMastered.textContent = appState.knownCards.length;
+        
+        if (appState.examHighScore !== null) {
+            statExamHighScore.textContent = `${appState.examHighScore}%`;
+        } else {
+            statExamHighScore.textContent = "אין נתונים";
+        }
+        
+        // Render Topic Tags click handlers
+        document.querySelectorAll(".topic-tag").forEach(tag => {
+            tag.addEventListener("click", () => {
+                const lessonId = parseInt(tag.getAttribute("data-lesson"));
+                loadLesson(lessonId);
+            });
+        });
+    };
+    
+    // Quick Actions
+    btnQuickFlashcards.addEventListener("click", () => switchView("flashcards"));
+    btnQuickExam.addEventListener("click", () => switchView("exam"));
+
+    // -----------------------------------------
+    // 7. LESSON PAGE LOGIC
+    // -----------------------------------------
+    const loadLesson = (lessonId) => {
+        appState.activeLessonId = lessonId;
+        const lesson = courseData.lessons.find(l => l.id === lessonId);
+        if (!lesson) return;
+        
+        // Switch view to lesson
+        switchView("lesson");
+        
+        // Update sidebar active selection
+        document.querySelectorAll(".lesson-nav-item").forEach((el, index) => {
+            el.classList.remove("active");
+            if (index + 1 === lessonId) {
+                el.classList.add("active");
+            }
+        });
+        
+        // Title & Badges
+        lessonNumberBadge.textContent = `מפגש ${lesson.id}`;
+        lessonTitleDisplay.textContent = lesson.title;
+        
+        // Progress check
+        lessonReadCheckbox.checked = appState.readLessons.includes(lessonId);
+        
+        // Render summary
+        lessonSummaryHtml.innerHTML = lesson.summaryHtml;
+        
+        // Mapped questions list inside the lesson summary
+        tabBtnQuestions.textContent = `שאלות מבחן קשורות (${lesson.questions.length})`;
+        
+        if (lesson.questions.length > 0) {
+            let html = `<h2 class="questions-section-title">שאלות תרגול למפגש זה (מתוך המבחן לדוגמה):</h2>`;
+            lesson.questions.forEach(q => {
+                html += `
+                <div class="lesson-question-wrapper" data-q-id="${q.id}">
+                    <h3 class="question-text">${q.id}. ${q.question}</h3>
+                    <div class="options-container">
+                `;
+                
+                Object.keys(q.options).forEach(letter => {
+                    const text = q.options[letter];
+                    if (text) {
+                        html += `
+                        <div class="option-card lesson-opt" data-letter="${letter}">
+                            <div class="option-letter">${letter}</div>
+                            <div class="option-text">${text}</div>
+                        </div>
+                        `;
+                    }
+                });
+                
+                html += `
+                    </div>
+                    <div class="feedback-card hidden q-feedback">
+                        <div class="feedback-status"></div>
+                        <p class="feedback-explanation">${q.explanation}</p>
+                    </div>
+                </div>
+                `;
+            });
+            lessonQuestionsContainer.innerHTML = html;
+            bindLessonQuestionsHandlers(lesson.questions);
+        } else {
+            lessonQuestionsContainer.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">💡</div>
+                <h3>אין שאלות ישירות מהמבחן לדוגמה עבור שיעור זה</h3>
+                <p>השאלות במבחן ממוקדות בעיקר בנושאי מפתח כמו Zero Trust, ניהול סיכונים, שרשרת האספקה, המשכיות עסקית ופתרונות EDR/XDR.</p>
+            </div>
+            `;
+        }
+        
+        // Set up Presentation
+        if (lesson.presentation) {
+            pdfEmbedContainer.classList.remove("hidden");
+            pdfFallbackMsg.classList.remove("active");
+            pdfEmbedContainer.innerHTML = `<iframe src="presentations/${lesson.presentation}"></iframe>`;
+        } else {
+            pdfEmbedContainer.classList.add("hidden");
+            pdfFallbackMsg.classList.add("active");
+            pdfEmbedContainer.innerHTML = "";
+            
+            // Customize fallback message for lesson 14
+            if (lessonId === 14) {
+                pdfFallbackMsg.querySelector("p").innerHTML = `מפגש 14 הוא מפגש סיכום והכנה למבחן. <br>מומלץ לעיין במצגות של <strong>מפגש 12</strong> ו-<strong>מפגש 13</strong> העוסקות בתוכניות המשכיות עסקית (BCP) ובניית תקציבים.`;
+            } else {
+                pdfFallbackMsg.querySelector("p").textContent = "לא נמצאה מצגת מוגדרת למפגש זה.";
+            }
+        }
+        
+        // Reset Tabs to Summary
+        switchLessonTab("summary");
+    };
+    
+    // Switch Lesson Tabs
+    const switchLessonTab = (tabName) => {
+        tabBtns.forEach(btn => {
+            btn.classList.remove("active");
+            if (btn.getAttribute("data-tab") === tabName) {
+                btn.classList.add("active");
+            }
+        });
+        
+        tabPanes.forEach(pane => {
+            pane.classList.remove("active");
+            if (pane.id === `lesson-tab-${tabName}`) {
+                pane.classList.add("active");
+            }
+        });
+    };
+    
+    tabBtns.forEach(btn => {
+        btn.addEventListener("click", () => {
+            switchLessonTab(btn.getAttribute("data-tab"));
+        });
+    });
+    
+    // Mark lesson as read checkbox
+    lessonReadCheckbox.addEventListener("change", () => {
+        const lessonId = appState.activeLessonId;
+        if (lessonReadCheckbox.checked) {
+            if (!appState.readLessons.includes(lessonId)) {
+                appState.readLessons.push(lessonId);
+            }
+        } else {
+            appState.readLessons = appState.readLessons.filter(id => id !== lessonId);
+        }
+        saveState();
+        renderSidebarLessons();
+        renderDashboard();
+    });
+    
+    // Lesson knowledge check (mapped questions) logic
+    const bindLessonQuestionsHandlers = (questions) => {
+        document.querySelectorAll(".lesson-question-wrapper").forEach(wrapper => {
+            const qId = parseInt(wrapper.getAttribute("data-q-id"));
+            const q = questions.find(question => question.id === qId);
+            const options = wrapper.querySelectorAll(".lesson-opt");
+            const feedbackCard = wrapper.querySelector(".q-feedback");
+            const feedbackStatus = wrapper.querySelector(".feedback-status");
+            
+            options.forEach(opt => {
+                opt.addEventListener("click", () => {
+                    // Lock other options
+                    options.forEach(o => o.style.pointerEvents = "none");
+                    
+                    const letter = opt.getAttribute("data-letter");
+                    const isCorrect = letter === q.answer;
+                    
+                    opt.classList.add(isCorrect ? "correct" : "incorrect");
+                    
+                    // Show correct option anyway
+                    if (!isCorrect) {
+                        wrapper.querySelector(`.lesson-opt[data-letter="${q.answer}"]`).classList.add("correct");
+                    }
+                    
+                    // Show feedback
+                    feedbackStatus.className = "feedback-status " + (isCorrect ? "correct" : "incorrect");
+                    feedbackStatus.innerHTML = isCorrect 
+                        ? `<svg class="icon status-icon"><use href="#icon-check"/></svg><span>תשובה נכונה!</span>`
+                        : `<svg class="icon status-icon"><use href="#icon-times"/></svg><span>תשובה שגויה. התשובה הנכונה היא ${q.answer}</span>`;
+                    
+                    feedbackCard.classList.remove("hidden");
+                });
+            });
+        });
+    };
+
+    // -----------------------------------------
+    // 8. FLASHCARDS LOGIC
+    // -----------------------------------------
+    const setupFlashcardsFilter = () => {
+        flashcardsFilter.innerHTML = `<option value="all">כל השיעורים</option>`;
+        courseData.lessons.forEach(l => {
+            const opt = document.createElement("option");
+            opt.value = l.id;
+            opt.textContent = `מפגש ${l.id}: ${l.title.split("-")[1].trim()}`;
+            flashcardsFilter.appendChild(opt);
+        });
+        
+        flashcardsFilter.addEventListener("change", () => {
+            setupFlashcardsDeck();
+        });
+    };
+    
+    const setupFlashcardsDeck = () => {
+        const selectedVal = flashcardsFilter.value;
+        let cards = [];
+        
+        if (selectedVal === "all") {
+            courseData.lessons.forEach(l => {
+                l.flashcards.forEach(c => {
+                    cards.push({ ...c, lessonId: l.id });
+                });
+            });
+        } else {
+            const lessonId = parseInt(selectedVal);
+            const lesson = courseData.lessons.find(l => l.id === lessonId);
+            if (lesson) {
+                lesson.flashcards.forEach(c => {
+                    cards.push({ ...c, lessonId: lesson.id });
+                });
+            }
+        }
+        
+        appState.flashcardDeck = cards;
+        appState.currentCardIndex = 0;
+        
+        // Reset flip state
+        flashcardBox.classList.remove("flipped");
+        
+        if (cards.length > 0) {
+            flashcardBox.classList.remove("hidden");
+            document.querySelector(".flashcard-buttons").classList.remove("hidden");
+            flashcardsEmptyState.classList.add("hidden");
+            renderFlashcard();
+        } else {
+            flashcardBox.classList.add("hidden");
+            document.querySelector(".flashcard-buttons").classList.add("hidden");
+            flashcardsEmptyState.classList.remove("hidden");
+            flashcardProgressText.textContent = "כרטיסייה 0 מתוך 0";
+            flashcardProgressFill.style.width = "0%";
+        }
+    };
+    
+    const renderFlashcard = () => {
+        const card = appState.flashcardDeck[appState.currentCardIndex];
+        
+        // Reset flip animation instantly before switching text
+        flashcardBox.style.transition = "none";
+        flashcardBox.classList.remove("flipped");
+        
+        // Force reflow
+        flashcardBox.offsetHeight;
+        flashcardBox.style.transition = "";
+        
+        // Populate text
+        cardFrontText.textContent = card.front;
+        cardBackText.textContent = card.back;
+        
+        // Badges
+        cardFrontNumber.textContent = `#${appState.currentCardIndex + 1}`;
+        cardBackNumber.textContent = `#${appState.currentCardIndex + 1}`;
+        cardFrontLesson.textContent = `מפגש ${card.lessonId}`;
+        cardBackLesson.textContent = `מפגש ${card.lessonId}`;
+        
+        // Update progress
+        flashcardProgressText.textContent = `כרטיסייה ${appState.currentCardIndex + 1} מתוך ${appState.flashcardDeck.length}`;
+        const pct = ((appState.currentCardIndex + 1) / appState.flashcardDeck.length) * 100;
+        flashcardProgressFill.style.width = `${pct}%`;
+        
+        // Nav buttons state
+        btnPrevCard.disabled = appState.currentCardIndex === 0;
+        btnNextCard.disabled = appState.currentCardIndex === appState.flashcardDeck.length - 1;
+        
+        // Mastery buttons state - reflect known cards
+        const isMastered = appState.knownCards.includes(card.front);
+        if (isMastered) {
+            btnKnowCard.classList.add("active");
+            btnKnowCard.style.boxShadow = `0 0 15px var(--accent-green-glow)`;
+        } else {
+            btnKnowCard.classList.remove("active");
+            btnKnowCard.style.boxShadow = "";
+        }
+    };
+    
+    // Card flipping trigger
+    flashcardBox.addEventListener("click", () => {
+        flashcardBox.classList.toggle("flipped");
+    });
+    
+    // Prev / Next card
+    btnPrevCard.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (appState.currentCardIndex > 0) {
+            appState.currentCardIndex--;
+            renderFlashcard();
+        }
+    });
+    
+    btnNextCard.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (appState.currentCardIndex < appState.flashcardDeck.length - 1) {
+            appState.currentCardIndex++;
+            renderFlashcard();
+        }
+    });
+    
+    // Know / Review logic
+    btnKnowCard.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const card = appState.flashcardDeck[appState.currentCardIndex];
+        if (!appState.knownCards.includes(card.front)) {
+            appState.knownCards.push(card.front);
+        }
+        saveState();
+        renderFlashcard();
+        
+        // Auto go next after a short delay
+        if (appState.currentCardIndex < appState.flashcardDeck.length - 1) {
+            setTimeout(() => {
+                if (appState.currentView === "flashcards") {
+                    appState.currentCardIndex++;
+                    renderFlashcard();
+                }
+            }, 300);
+        }
+    });
+    
+    btnReviewCard.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const card = appState.flashcardDeck[appState.currentCardIndex];
+        appState.knownCards = appState.knownCards.filter(text => text !== card.front);
+        saveState();
+        renderFlashcard();
+        
+        if (appState.currentCardIndex < appState.flashcardDeck.length - 1) {
+            setTimeout(() => {
+                if (appState.currentView === "flashcards") {
+                    appState.currentCardIndex++;
+                    renderFlashcard();
+                }
+            }, 300);
+        }
+    });
+
+    // -----------------------------------------
+    // 9. EXAM SIMULATOR LOGIC
+    // -----------------------------------------
+    // Toggle active mode styles
+    const modeOptions = document.querySelectorAll(".mode-option");
+    modeOptions.forEach(opt => {
+        opt.addEventListener("click", () => {
+            modeOptions.forEach(o => o.classList.remove("active"));
+            opt.classList.add("active");
+            opt.querySelector("input").checked = true;
+            appState.examMode = opt.querySelector("input").value;
+        });
+    });
+    
+    // Start Exam button
+    btnStartExam.addEventListener("click", () => {
+        appState.examQuestions = [...courseData.allQuestions]; // copy the questions
+        appState.currentExamIndex = 0;
+        appState.examAnswers = {};
+        appState.examChecked = {};
+        
+        // UI Views
+        examIntro.classList.add("hidden");
+        examActive.classList.remove("hidden");
+        examResults.classList.add("hidden");
+        
+        renderExamQuestion();
+    });
+    
+    const renderExamQuestion = () => {
+        const q = appState.examQuestions[appState.currentExamIndex];
+        const index = appState.currentExamIndex;
+        
+        // Counter & progress bar
+        examQuestionCounter.textContent = `שאלה ${index + 1} מתוך ${appState.examQuestions.length}`;
+        const pct = ((index + 1) / appState.examQuestions.length) * 100;
+        examProgressFill.style.width = `${pct}%`;
+        
+        // Question text
+        examQuestionText.textContent = `${q.id}. ${q.question}`;
+        
+        // Options rendering
+        examOptionsContainer.innerHTML = "";
+        
+        // Is it already checked (in study mode)?
+        const isChecked = appState.examChecked[index] || false;
+        const chosen = appState.examAnswers[index] || null;
+        
+        Object.keys(q.options).forEach(letter => {
+            const optionText = q.options[letter];
+            if (!optionText) return;
+            
+            const optCard = document.createElement("div");
+            optCard.className = "option-card";
+            optCard.setAttribute("data-letter", letter);
+            
+            optCard.innerHTML = `
+                <div class="option-letter">${letter}</div>
+                <div class="option-text">${optionText}</div>
+            `;
+            
+            // Styling based on state
+            if (chosen === letter) {
+                optCard.classList.add("selected");
+            }
+            
+            if (isChecked) {
+                optCard.style.pointerEvents = "none";
+                if (letter === q.answer) {
+                    optCard.classList.remove("selected");
+                    optCard.classList.add("correct");
+                } else if (chosen === letter) {
+                    optCard.classList.remove("selected");
+                    optCard.classList.add("incorrect");
+                }
+            } else {
+                // Click handler
+                optCard.addEventListener("click", () => {
+                    document.querySelectorAll("#exam-options-container .option-card").forEach(c => {
+                        c.classList.remove("selected");
+                    });
+                    optCard.classList.add("selected");
+                    appState.examAnswers[index] = letter;
+                    
+                    // Enable Check Answer or Next button
+                    if (appState.examMode === "study") {
+                        btnExamCheck.classList.remove("hidden");
+                    }
+                });
+            }
+            
+            examOptionsContainer.appendChild(optCard);
+        });
+        
+        // Navigation buttons adjustment
+        btnExamPrev.disabled = index === 0;
+        
+        // Study mode vs test mode adjustments
+        if (appState.examMode === "study") {
+            if (isChecked) {
+                btnExamCheck.classList.add("hidden");
+                showExamFeedback(q);
+                toggleNextOrSubmit(index);
+            } else {
+                btnExamCheck.classList.add("hidden"); // Only show when option is selected
+                examFeedbackCard.classList.add("hidden");
+                btnExamNext.classList.add("hidden");
+                btnExamSubmit.classList.add("hidden");
+                
+                // If an option was already selected but not checked
+                if (chosen) {
+                    btnExamCheck.classList.remove("hidden");
+                }
+            }
+        } else {
+            // Test mode: check is always hidden, feedback is hidden, next/submit is always shown (if chosen or not)
+            btnExamCheck.classList.add("hidden");
+            examFeedbackCard.classList.add("hidden");
+            toggleNextOrSubmit(index);
+        }
+    };
+    
+    const toggleNextOrSubmit = (index) => {
+        if (index === appState.examQuestions.length - 1) {
+            btnExamNext.classList.add("hidden");
+            btnExamSubmit.classList.remove("hidden");
+        } else {
+            btnExamNext.classList.remove("hidden");
+            btnExamSubmit.classList.add("hidden");
+        }
+    };
+    
+    const showExamFeedback = (q) => {
+        const index = appState.currentExamIndex;
+        const chosen = appState.examAnswers[index];
+        const isCorrect = chosen === q.answer;
+        
+        examFeedbackCard.classList.remove("hidden");
+        examFeedbackStatus.className = "feedback-status " + (isCorrect ? "correct" : "incorrect");
+        
+        examFeedbackStatusText.textContent = isCorrect ? "תשובה נכונה!" : `תשובה שגויה. התשובה הנכונה היא ${q.answer}`;
+        examFeedbackExplanation.textContent = q.explanation;
+        
+        // Swap status icon
+        examFeedbackStatus.querySelector(".status-icon use").setAttribute("href", isCorrect ? "#icon-check" : "#icon-times");
+    };
+    
+    // Check answer button click (Study Mode)
+    btnExamCheck.addEventListener("click", () => {
+        const index = appState.currentExamIndex;
+        const chosen = appState.examAnswers[index];
+        if (!chosen) return;
+        
+        appState.examChecked[index] = true;
+        
+        // Re-render to lock options and show feedback
+        renderExamQuestion();
+    });
+    
+    // Prev / Next question navigation
+    btnExamPrev.addEventListener("click", () => {
+        if (appState.currentExamIndex > 0) {
+            appState.currentExamIndex--;
+            renderExamQuestion();
+        }
+    });
+    
+    btnExamNext.addEventListener("click", () => {
+        if (appState.currentExamIndex < appState.examQuestions.length - 1) {
+            appState.currentExamIndex++;
+            renderExamQuestion();
+        }
+    });
+    
+    // Submit Exam click
+    btnExamSubmit.addEventListener("click", () => {
+        submitExamResults();
+    });
+    
+    // -----------------------------------------
+    // 10. EXAM RESULTS PROCESSING
+    // -----------------------------------------
+    const submitExamResults = () => {
+        let correctCount = 0;
+        const total = appState.examQuestions.length;
+        
+        // Calculate scores by topic
+        // Topics mapping based on questions:
+        const topics = {
+            "Zero Trust": { correct: 0, total: 0, questionIds: [13, 20, 22] },
+            "ניהול סיכונים": { correct: 0, total: 0, questionIds: [1, 2, 9, 12, 18] },
+            "המשכיות עסקית (BCP)": { correct: 0, total: 0, questionIds: [3, 4, 5, 6, 8, 17] },
+            "אבטחת נקודות קצה ו-EDR/XDR": { correct: 0, total: 0, questionIds: [7, 16] },
+            "מודיעין סייבר ו-SOC": { correct: 0, total: 0, questionIds: [10, 15, 19] },
+            "שרשרת האספקה (SCRM)": { correct: 0, total: 0, questionIds: [14, 21] }
+        };
+        
+        appState.examQuestions.forEach((q, idx) => {
+            const chosen = appState.examAnswers[idx] || null;
+            const isCorrect = chosen === q.answer;
+            
+            if (isCorrect) {
+                correctCount++;
+            }
+            
+            // Map to topic
+            Object.keys(topics).forEach(topicName => {
+                const topic = topics[topicName];
+                if (topic.questionIds.includes(q.id)) {
+                    topic.total++;
+                    if (isCorrect) topic.correct++;
+                }
+            });
+        });
+        
+        // Final Score
+        const scorePercent = Math.round((correctCount / total) * 100);
+        
+        // Update High Score
+        if (appState.examHighScore === null || scorePercent > parseInt(appState.examHighScore)) {
+            appState.examHighScore = scorePercent;
+            saveState();
+        }
+        
+        // UI Views
+        examActive.classList.add("hidden");
+        examResults.classList.remove("hidden");
+        
+        // Renders
+        resultsScorePercent.textContent = `${scorePercent}%`;
+        resultsScoreFraction.textContent = `${correctCount} מתוך ${total}`;
+        
+        // Pass/Fail State (threshold = 60%)
+        const passed = scorePercent >= 60;
+        resultsStatusBadge.className = "status-badge " + (passed ? "pass" : "fail");
+        resultsStatusBadge.textContent = passed ? "עבר" : "נכשל";
+        
+        resultsFeedbackMessage.innerHTML = passed 
+            ? `כל הכבוד! עברת את המבחן הסימולטיבי בהצלחה עם ציון של <strong>${scorePercent}%</strong>. אתה מוכן היטב לבחינה.`
+            : `הציון שקיבלת הוא <strong>${scorePercent}%</strong> (ציון המעבר הוא 60%). אנו ממליצים לעבור שוב על סיכומי השיעורים וכרטיסיות השינון של הנושאים החלשים.`;
+            
+        // Render topics progress bars
+        let topicsHtml = "";
+        Object.keys(topics).forEach(topicName => {
+            const topic = topics[topicName];
+            if (topic.total === 0) return;
+            const topicPct = Math.round((topic.correct / topic.total) * 100);
+            
+            topicsHtml += `
+            <div class="topic-progress-row">
+                <div class="topic-progress-label">${topicName}</div>
+                <div class="topic-progress-bar-wrapper">
+                    <div class="progress-bar-bg">
+                        <div class="progress-bar-fill" style="width: ${topicPct}%; background: ${topicPct >= 60 ? 'var(--accent-green)' : 'var(--accent-red)'}"></div>
+                    </div>
+                </div>
+                <div class="topic-progress-percent">${topicPct}% (${topic.correct}/${topic.total})</div>
+            </div>
+            `;
+        });
+        resultsTopicsProgress.innerHTML = topicsHtml;
+        
+        // Render detailed questions review list
+        let reviewHtml = "";
+        appState.examQuestions.forEach((q, idx) => {
+            const chosen = appState.examAnswers[idx] || "לא נענה";
+            const isCorrect = chosen === q.answer;
+            
+            reviewHtml += `
+            <div class="review-item ${isCorrect ? 'correct' : 'incorrect'}">
+                <div class="review-q-header">
+                    <div class="review-q-title">${q.id}. ${q.question}</div>
+                    <div class="review-q-status ${isCorrect ? 'correct' : 'incorrect'}">
+                        ${isCorrect ? 'נכון' : 'שגוי'}
+                    </div>
+                </div>
+                <div class="review-answers-compare">
+                    <p>התשובה שלך: <span class="user-ans ${isCorrect ? 'correct' : 'incorrect'}"><strong>(${chosen})</strong> ${chosen !== "לא נענה" ? (q.options[chosen] || "") : ""}</span></p>
+                    ${!isCorrect ? `<p>התשובה הנכונה: <span class="correct-ans"><strong>(${q.answer})</strong> ${q.options[q.answer] || ""}</span></p>` : ''}
+                </div>
+                <p class="feedback-explanation"><strong>הסבר:</strong> ${q.explanation}</p>
+            </div>
+            `;
+        });
+        resultsQuestionsReview.innerHTML = reviewHtml;
+    };
+    
+    // Restart Exam button
+    btnRestartExam.addEventListener("click", () => {
+        examResults.classList.add("hidden");
+        examIntro.classList.remove("hidden");
+        switchView("exam");
+    });
+
+    // -----------------------------------------
+    // 11. GLOBAL SEARCH LOGIC
+    // -----------------------------------------
+    globalSearch.addEventListener("input", () => {
+        const val = globalSearch.value.trim().toLowerCase();
+        if (!val || val.length < 2) {
+            searchResults.classList.add("hidden");
+            return;
+        }
+        
+        let matches = [];
+        
+        // 1. Search in lesson titles/summaries
+        courseData.lessons.forEach(l => {
+            // Check title
+            if (l.title.toLowerCase().includes(val)) {
+                matches.push({
+                    type: "lesson",
+                    id: l.id,
+                    title: `שיעור ${l.id}: ${l.title.split("-")[1].trim()}`,
+                    snippet: "מעבר לשיעור זה מהתפריט"
+                });
+            } else {
+                // Check in raw summary content (we'll strip tags to search inside)
+                const textOnly = l.summaryHtml.replace(/<[^>]*>/g, '').toLowerCase();
+                const idx = textOnly.indexOf(val);
+                if (idx !== -1) {
+                    const start = Math.max(0, idx - 30);
+                    const end = Math.min(textOnly.length, idx + 40);
+                    let snippet = textOnly.substring(start, end).trim();
+                    if (start > 0) snippet = "..." + snippet;
+                    if (end < textOnly.length) snippet = snippet + "...";
+                    
+                    matches.push({
+                        type: "lesson",
+                        id: l.id,
+                        title: `שיעור ${l.id}: ${l.title.split("-")[1].trim()}`,
+                        snippet: snippet
+                    });
+                }
+            }
+        });
+        
+        // 2. Search in exam questions
+        courseData.allQuestions.forEach(q => {
+            if (q.question.toLowerCase().includes(val) || q.explanation.toLowerCase().includes(val)) {
+                const idx = q.question.toLowerCase().indexOf(val);
+                let snippet = "";
+                if (idx !== -1) {
+                    const start = Math.max(0, idx - 20);
+                    const end = Math.min(q.question.length, idx + 50);
+                    snippet = q.question.substring(start, end).trim();
+                } else {
+                    snippet = q.explanation.substring(0, 70).trim();
+                }
+                
+                matches.push({
+                    type: "exam",
+                    id: q.id,
+                    title: `שאלה ${q.id} מהמבחן לדוגמה`,
+                    snippet: snippet
+                });
+            }
+        });
+        
+        // Render Search Results
+        renderSearchResults(matches);
+    });
+    
+    const renderSearchResults = (matches) => {
+        searchResults.innerHTML = "";
+        if (matches.length === 0) {
+            searchResults.innerHTML = `<div class="search-result-item" style="color: var(--text-muted);">לא נמצאו תוצאות תואמות.</div>`;
+            searchResults.classList.remove("hidden");
+            return;
+        }
+        
+        matches.slice(0, 6).forEach(m => {
+            const item = document.createElement("div");
+            item.className = "search-result-item";
+            item.innerHTML = `
+                <div class="result-title">${m.title}</div>
+                <div class="result-snippet">${m.snippet}</div>
+            `;
+            
+            item.addEventListener("click", () => {
+                searchResults.classList.add("hidden");
+                globalSearch.value = "";
+                
+                if (m.type === "lesson") {
+                    loadLesson(m.id);
+                } else if (m.type === "exam") {
+                    switchView("exam");
+                    // Jump to intro or directly to the question if they prefer,
+                    // but switching to exam simulator is the most stable.
+                }
+            });
+            searchResults.appendChild(item);
+        });
+        
+        searchResults.classList.remove("hidden");
+    };
+    
+    // Close search dropdown on click outside
+    document.addEventListener("click", (e) => {
+        if (!globalSearch.contains(e.target) && !searchResults.contains(e.target)) {
+            searchResults.classList.add("hidden");
+        }
+    });
+
+    // Initialize the app view
+    renderSidebarLessons();
+    setupFlashcardsFilter();
+    switchView("dashboard");
+});
