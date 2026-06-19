@@ -58,6 +58,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const statExamHighScore = document.getElementById("stat-exam-high-score");
     const btnQuickFlashcards = document.getElementById("btn-quick-flashcards");
     const btnQuickExam = document.getElementById("btn-quick-exam");
+    const btnQuickGlossary = document.getElementById("btn-quick-glossary");
+    
+    // Glossary View elements
+    const glossarySearch = document.getElementById("glossary-search");
+    const glossaryList = document.getElementById("glossary-list");
+    const glossaryLetterFilters = document.getElementById("glossary-letter-filters");
+    const glossaryStats = document.getElementById("glossary-stats");
+    const glossaryEmptyState = document.getElementById("glossary-empty-state");
     
     // Lesson View elements
     const lessonNumberBadge = document.getElementById("lesson-number-badge");
@@ -330,6 +338,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Quick Actions
     btnQuickFlashcards.addEventListener("click", () => switchView("flashcards"));
     btnQuickExam.addEventListener("click", () => switchView("exam"));
+    btnQuickGlossary.addEventListener("click", () => switchView("glossary"));
 
     // -----------------------------------------
     // 7. LESSON PAGE LOGIC
@@ -1040,6 +1049,74 @@ document.addEventListener("DOMContentLoaded", () => {
             searchResults.classList.add("hidden");
         }
     });
+
+    // -----------------------------------------
+    // GLOSSARY LOGIC
+    // -----------------------------------------
+    let activeGlossaryLetter = "all";
+
+    const renderGlossary = () => {
+        const terms = courseData.glossary || [];
+        const query = glossarySearch ? glossarySearch.value.trim().toLowerCase() : "";
+
+        const filtered = terms.filter(t => {
+            const matchesLetter = activeGlossaryLetter === "all" ||
+                t.term.toUpperCase().startsWith(activeGlossaryLetter);
+            const matchesSearch = !query ||
+                t.term.toLowerCase().includes(query) ||
+                t.definition.toLowerCase().includes(query);
+            return matchesLetter && matchesSearch;
+        });
+
+        glossaryList.innerHTML = "";
+        glossaryEmptyState.classList.toggle("hidden", filtered.length > 0);
+        glossaryStats.textContent = `${filtered.length} מושגים מתוך ${terms.length}`;
+
+        filtered.forEach(t => {
+            const card = document.createElement("div");
+            card.className = "glossary-card";
+            card.innerHTML = `
+                <div class="glossary-card-header">
+                    <span class="glossary-term">${t.term}</span>
+                    <span class="glossary-lesson-badge">מפגש ${t.lesson}</span>
+                </div>
+                <p class="glossary-definition">${t.definition}</p>
+            `;
+            glossaryList.appendChild(card);
+        });
+    };
+
+    const initGlossaryLetterFilters = () => {
+        const terms = courseData.glossary || [];
+        // Collect first chars
+        const letters = new Set();
+        terms.forEach(t => {
+            const first = t.term[0].toUpperCase();
+            letters.add(first);
+        });
+        const sorted = ["all", ...Array.from(letters).sort()];
+
+        glossaryLetterFilters.innerHTML = "";
+        sorted.forEach(letter => {
+            const btn = document.createElement("button");
+            btn.className = "glossary-letter-btn" + (letter === "all" ? " active" : "");
+            btn.textContent = letter === "all" ? "הכל" : letter;
+            btn.addEventListener("click", () => {
+                activeGlossaryLetter = letter;
+                document.querySelectorAll(".glossary-letter-btn").forEach(b => b.classList.remove("active"));
+                btn.classList.add("active");
+                renderGlossary();
+            });
+            glossaryLetterFilters.appendChild(btn);
+        });
+    };
+
+    if (glossarySearch) {
+        glossarySearch.addEventListener("input", renderGlossary);
+    }
+
+    initGlossaryLetterFilters();
+    renderGlossary();
 
     // Initialize the app view
     renderSidebarLessons();

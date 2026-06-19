@@ -212,6 +212,14 @@
                                         <p>מבחן הכולל את כל 22 השאלות לדוגמה עם ניתוח תוצאות מפורט</p>
                                     </div>
                                 </button>
+
+                                <button class="action-card" id="btn-quick-glossary">
+                                    <div class="action-icon">📖</div>
+                                    <div class="action-text">
+                                        <h3>מילון מושגים</h3>
+                                        <p>כל מונחי הסייבר המרכזיים עם הגדרות מפורטות וחיפוש מהיר</p>
+                                    </div>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -463,12 +471,41 @@
                     </div>
                 </section>
 
+                <!-- Glossary View -->
+                <section id="view-glossary" class="view-section">
+                    <div class="welcome-banner">
+                        <div class="banner-content">
+                            <h1>מילון מושגים</h1>
+                            <p>כל מונחי הסייבר המרכזיים מהקורס — עם הגדרות מפורטות ומספר המפגש הרלוונטי</p>
+                        </div>
+                        <div class="banner-glow"></div>
+                    </div>
+
+                    <div class="glossary-controls">
+                        <div class="glossary-search-wrap">
+                            <span class="glossary-search-icon">🔍</span>
+                            <input type="text" id="glossary-search" class="glossary-search" placeholder="חפש מושג...">
+                        </div>
+                        <div class="glossary-stats" id="glossary-stats">טוען...</div>
+                    </div>
+
+                    <div class="glossary-letter-filters" id="glossary-letter-filters"></div>
+
+                    <div class="glossary-list" id="glossary-list"></div>
+
+                    <div class="empty-state hidden" id="glossary-empty-state">
+                        <div class="empty-icon">🔍</div>
+                        <h3>לא נמצאו מושגים</h3>
+                        <p>נסה לחפש מונח אחר</p>
+                    </div>
+                </section>
+
             </div>
         </main>
     </div>
 
     <!-- Scripts -->
-    <script src="courseData.js?v=2.4"></script>
-    <script src="script.js?v=2.4"></script>
+    <script src="courseData.js?v=2.5"></script>
+    <script src="script.js?v=2.5"></script>
 </body>
 </html>
