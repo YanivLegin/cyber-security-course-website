@@ -1184,7 +1184,7 @@ const courseData = {
     },
     {
       "term": "Cyber Kill Chain",
-      "definition": "מודל של לוקהיד מרטין המתאר 7 שלבים של תקיפה ממוקדת: Reconnaissance, Weaponization, Delivery, Exploitation, Installation, C2, ו-Actions on Objectives.",
+      "definition": "מודל של לוקהיד מרטין המתאר 7 שלבים של תקיפה ממוקדת: <span dir=\"ltr\">Reconnaissance, Weaponization, Delivery, Exploitation, Installation, C2, Actions on Objectives</span>.",
       "lesson": 8
     },
     {
@@ -1354,7 +1354,7 @@ const courseData = {
     },
     {
       "term": "RMF (Risk Management Framework)",
-      "definition": "מסגרת ניהול סיכונים פדרלית המתחברת ל-NIST. שלביה: Categorize, Select, Implement, Assess, Authorize, Monitor. מיועדת לגופים עם רגולציה מחמירה.",
+      "definition": "מסגרת ניהול סיכונים פדרלית המתחברת ל-NIST. שלביה: <span dir=\"ltr\">Categorize, Select, Implement, Assess, Authorize, Monitor</span>. מיועדת לגופים עם רגולציה מחמירה.",
       "lesson": 6
     },
     {
