@@ -272,7 +272,12 @@
 
                         <!-- Presentation Tab -->
                         <div id="lesson-tab-presentation" class="tab-pane">
-                            <div class="presentation-wrapper">
+                                <div class="presentation-header" style="display:flex; justify-content:space-between; align-items:center; padding: 10px 20px; background: rgba(0,0,0,0.2); border-bottom: 1px solid var(--border-color);">
+                                    <span style="font-weight: 600; font-size: 0.9rem; color: var(--text-muted);">מצגת השיעור (מומלץ לצפות בכרום)</span>
+                                    <button id="btn-open-pdf-new-tab" class="action-btn" style="font-size: 0.85rem; padding: 6px 12px; border-radius: 6px; background-color: var(--primary-color); color: white; border: none; cursor: pointer; transition: background-color 0.2s;">
+                                        פתח בחלון חדש ↗
+                                    </button>
+                                </div>
                                 <div class="presentation-iframe-container" id="pdf-embed-container">
                                     <!-- PDF iframe is rendered here -->
                                 </div>

@@ -376,10 +376,21 @@ document.addEventListener("DOMContentLoaded", () => {
             pdfEmbedContainer.classList.remove("hidden");
             pdfFallbackMsg.classList.remove("active");
             pdfEmbedContainer.innerHTML = `<iframe src="presentations/${lesson.presentation}"></iframe>`;
+            
+            const btnOpenPdf = document.getElementById("btn-open-pdf-new-tab");
+            if (btnOpenPdf) {
+                btnOpenPdf.style.display = "block";
+                btnOpenPdf.onclick = () => window.open(`presentations/${lesson.presentation}`, "_blank");
+            }
         } else {
             pdfEmbedContainer.classList.add("hidden");
             pdfFallbackMsg.classList.add("active");
             pdfEmbedContainer.innerHTML = "";
+            
+            const btnOpenPdf = document.getElementById("btn-open-pdf-new-tab");
+            if (btnOpenPdf) {
+                btnOpenPdf.style.display = "none";
+            }
             
             // Customize fallback message for lesson 13
             if (lessonId === 13) {
