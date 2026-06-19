@@ -375,7 +375,9 @@ document.addEventListener("DOMContentLoaded", () => {
         if (lesson.presentation) {
             pdfEmbedContainer.classList.remove("hidden");
             pdfFallbackMsg.classList.remove("active");
-            pdfEmbedContainer.innerHTML = `<iframe src="presentations/${lesson.presentation}"></iframe>`;
+            pdfEmbedContainer.innerHTML = `<object data="presentations/${lesson.presentation}#view=FitH" type="application/pdf" width="100%" height="100%">
+                <p style="text-align:center; padding: 20px;">הדפדפן שלך לא תומך בהצגת מצגות PDF באופן מובנה. <br><br><a href="presentations/${lesson.presentation}" target="_blank" style="color:var(--primary-color); text-decoration:underline;">לחץ כאן לפתיחת המצגת בחלון חדש</a></p>
+            </object>`;
         } else {
             pdfEmbedContainer.classList.add("hidden");
             pdfFallbackMsg.classList.add("active");

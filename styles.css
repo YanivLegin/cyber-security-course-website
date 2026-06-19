@@ -863,10 +863,12 @@ body {
     height: 100%;
 }
 
-.presentation-iframe-container iframe {
+.presentation-iframe-container iframe,
+.presentation-iframe-container object {
     width: 100%;
     height: 100%;
     border: none;
+    display: block;
 }
 
 .presentation-fallback {
